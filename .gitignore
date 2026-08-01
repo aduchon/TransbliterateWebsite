@@ -1,0 +1,7 @@
+_site/
+pipeline/inbox/
+pipeline/renders/
+__pycache__/
+.DS_Store
+node_modules/
+.venv/

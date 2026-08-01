@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block title %}Process — {{ site.title }}{% endblock %}
+{% block content %}
+<article class="prose">
+  <h1>Process</h1>
+  {{ body | safe }}
+
+  <h2>Technical specifications</h2>
+  <dl class="specs">
+    <dt>Medium</dt><dd>{{ specs.medium }}</dd>
+    <dt>Dimensions</dt><dd>{{ specs.dimensions }}</dd>
+  </dl>
+  <h3>Tools</h3>
+  <dl class="specs">
+    {% for t in specs.tools %}
+    <dt>{{ t.name }}</dt><dd>{{ t.detail }}</dd>
+    {% endfor %}
+  </dl>
+</article>
+{% endblock %}

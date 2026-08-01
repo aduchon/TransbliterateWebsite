@@ -1,0 +1,10 @@
+# Technical specifications shown on /process/ (award: artwork documentation)
+medium: "Poetry, AI-generated imagery, and 3D digital sculpture"
+dimensions: "Images 1344×768 px; sculptures as glTF/GLB 3D models; texts in print and web"
+tools:
+  - {name: Transbliteration, detail: "Original poetic rewriting of all 154 Shakespeare sonnets by the artist"}
+  - {name: FLUX, detail: "Line-by-line image generation from structured prompts (material, artists, setting, era), run in Google Colab"}
+  - {name: TRELLIS, detail: "Image-to-3D generation of sculpture models (GLB)"}
+  - {name: Latent interpolation, detail: "Slerp walks between line images, rendered as video"}
+  - {name: DynamicDiff, detail: "Custom Python/Manim tool animating each sonnet morphing into its transbliteration"}
+  - {name: Site, detail: "Hand-built static site (Python/Jinja2, three.js, model-viewer)"}

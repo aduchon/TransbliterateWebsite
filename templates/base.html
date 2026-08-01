@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% block title %}{{ site.title }} — {{ site.subtitle }}{% endblock %}</title>
+<meta name="description" content="{% block description %}{{ site.description }}{% endblock %}">
+{% block og %}
+<meta property="og:title" content="{{ self.title() }}">
+<meta property="og:description" content="{{ site.description }}">
+{% endblock %}
+<link rel="stylesheet" href="/static/css/site.css">
+{% block head %}{% endblock %}
+</head>
+<body>
+<header class="site-header">
+  <a class="wordmark" href="/">{{ site.title }}<span class="wordmark-sub">{{ site.subtitle }}</span></a>
+  <nav>
+    {% for item in site.nav %}
+    <a href="{{ item.url }}">{{ item.label }}</a>
+    {% endfor %}
+  </nav>
+</header>
+<main>
+{% block content %}{% endblock %}
+</main>
+<footer class="site-footer">
+  <p>{{ site.footer }} — <a href="https://{{ site.domain }}">{{ site.domain }}</a></p>
+</footer>
+{% block scripts %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,14 @@
+title: Transbliterations
+subtitle: "Volume Two: Shakespeare"
+artist: Andrew Duchon
+domain: transbliterate.com
+description: >-
+  All 154 of Shakespeare's sonnets, transbliterated into modern free verse,
+  then transformed line by line into AI-generated sculpture — a garden of
+  poems you can walk through.
+nav:
+  - {label: Sonnets, url: "/#sonnets"}
+  - {label: Garden, url: "/garden/"}
+  - {label: Process, url: "/process/"}
+  - {label: About, url: "/about/"}
+footer: "Transbliterations, Volume Two: Shakespeare — Andrew Duchon"

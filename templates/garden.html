@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}Sculpture Garden — {{ site.title }}{% endblock %}
+{% block content %}
+<section class="garden-shell">
+  {% if garden.sculptures %}
+  <div id="garden-canvas">
+    <div id="garden-loading"><div class="bar"><div id="garden-progress"></div></div><p>Entering the garden…</p></div>
+  </div>
+  <div class="garden-help">
+    <p><strong>Tour:</strong> scroll or drag to move along the path. <strong>Walk</strong> (desktop): click “Walk”, then WASD + mouse. Click a plinth label to open its sonnet.</p>
+    <button id="garden-mode" hidden>Walk</button>
+  </div>
+  <script type="application/json" id="garden-data">{{ garden | tojson }}</script>
+  {% else %}
+  <div class="garden-placeholder">
+    <h1>The Sculpture Garden</h1>
+    <p>The garden is being planted. Sculptures will appear here as they are carved.</p>
+  </div>
+  {% endif %}
+</section>
+{% endblock %}
+{% block scripts %}
+{% if garden.sculptures %}
+<script type="importmap">
+{"imports": {"three": "/static/vendor/three/three.module.js",
+             "three/addons/": "/static/vendor/three/addons/"}}
+</script>
+<script type="module" src="/static/js/garden.js"></script>
+{% endif %}
+{% endblock %}
