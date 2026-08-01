@@ -1,6 +1,7 @@
 _site/
 pipeline/inbox/
 pipeline/renders/
+pipeline/poems.json
 __pycache__/
 .DS_Store
 node_modules/

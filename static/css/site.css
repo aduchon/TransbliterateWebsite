@@ -79,7 +79,8 @@ main { min-height: 70vh; }
 .poem h2 { font-size: 1rem; color: var(--muted); text-transform: uppercase; letter-spacing: .1em; }
 .poem pre {
   font-family: var(--serif); font-size: 1.05rem; line-height: 1.7;
-  white-space: pre-wrap; margin: 0;
+  white-space: pre; margin: 0; tab-size: 3;
+  overflow-x: auto;
 }
 
 .line-gallery { margin-top: 3rem; }

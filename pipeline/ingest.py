@@ -9,8 +9,8 @@ Writes  assets/img/018/line_NN.webp (+ _thumb) and content/sonnets/018/manifest.
 Re-running with a different --run replaces images and per-line metadata but
 preserves hand-edited manifest fields (texts, models, videos, part, title_line).
 Optional inputs, merged when present:
-  --book pipeline/inbox/book.txt        plain-text export of the Google Doc;
-                                        poem extracted via 'Transbliterated (NNN)' headers
+  pipeline/poems.json                   poem texts w/ indentation; regenerate via
+                                        extract_poems.py from the book .docx
   pipeline/sonnets_original.json        {"18": "Shall I compare..."} original texts
   pipeline/inbox/Sonnet018/glb/*.glb    compressed via compress_glb.sh separately
 """
@@ -75,22 +75,23 @@ def line_info(run_json, n):
     return text, {k: v for k, v in meta.items() if v is not None}
 
 
-def poem_from_book(book_text, seq):
-    """Extract transbliteration `seq` from a plain-text export of the book."""
-    pattern = rf"Transbliterat\w*\s*\({seq:03d}\)"
-    match = re.search(pattern, book_text)
-    if not match:
-        return None
-    rest = book_text[match.end():]
-    nxt = re.search(r"(Transbliterat\w*\s*\(\d{3}\)|^Part\s+[IVX]+\.)", rest, re.M)
-    body = rest[: nxt.start()] if nxt else rest
-    lines = [ln.strip() for ln in body.splitlines()]
-    # drop leading blank/marker lines like "[-841]"
-    while lines and (not lines[0] or re.fullmatch(r"\\?\[?-?\d+\\?\]?", lines[0])):
-        lines.pop(0)
-    while lines and not lines[-1]:
-        lines.pop()
-    return [ln for ln in lines if ln]
+def apply_poem(manifest, seq):
+    """Fill poem text/part/roman from pipeline/poems.json (see extract_poems.py).
+
+    Lines carry leading tabs and stanza-break empty strings — indentation is
+    part of the work; preserve it verbatim (templates render inside <pre>).
+    """
+    poems_path = ROOT / "pipeline" / "poems.json"
+    if not poems_path.exists():
+        print("note: pipeline/poems.json missing — run extract_poems.py on the book docx")
+        return
+    poem = json.loads(poems_path.read_text()).get(f"{seq:03d}")
+    if not poem:
+        print(f"warning: poem {seq:03d} not in poems.json")
+        return
+    manifest["transbliteration"] = poem["lines"]
+    manifest["part"] = re.sub(r"\s+", " ", poem["part"])
+    manifest["roman"] = poem["roman"]
 
 
 def main():
@@ -98,7 +99,6 @@ def main():
     ap.add_argument("--sonnet", required=True, help="sonnet number, e.g. 018 or 18")
     ap.add_argument("--run", required=True, help="TIMESTAMP_SEED run folder name")
     ap.add_argument("--seq", type=int, help="transbliteration sequence number (defaults to existing manifest or sonnet #)")
-    ap.add_argument("--book", type=Path, help="plain-text export of the book doc")
     ap.add_argument("--inbox", type=Path, default=ROOT / "pipeline" / "inbox")
     args = ap.parse_args()
 
@@ -117,12 +117,7 @@ def main():
     manifest = json.loads(manifest_path.read_text()) if manifest_path.exists() else {}
     seq = args.seq or manifest.get("seq", num)
 
-    if args.book:
-        poem = poem_from_book(args.book.read_text(), seq)
-        if poem:
-            manifest["transbliteration"] = poem
-        else:
-            print(f"warning: Transbliterated ({seq:03d}) not found in {args.book}")
+    apply_poem(manifest, seq)
 
     originals_path = ROOT / "pipeline" / "sonnets_original.json"
     if originals_path.exists() and not manifest.get("original"):
@@ -155,7 +150,8 @@ def main():
     manifest.pop("comment", None)
     poem = manifest.get("transbliteration", [])
     manifest.setdefault("part", "")
-    manifest.setdefault("title_line", poem[0] if poem else "")
+    first = next((ln.strip() for ln in poem if ln.strip()), "")
+    manifest["title_line"] = manifest.get("title_line") or first
     manifest.setdefault("original", "")
     manifest.setdefault("transbliteration", [])
     manifest.setdefault("models", [])
@@ -165,7 +161,7 @@ def main():
     manifest_path.write_text(json.dumps(manifest, indent=2) + "\n")
     print(f"wrote {manifest_path.relative_to(ROOT)}: {len(lines)} lines from run {args.run}")
     if not manifest["transbliteration"]:
-        print("note: no poem text yet — rerun with --book <export.txt> or edit the manifest")
+        print("note: no poem text yet — run extract_poems.py, then re-run ingest")
 
 
 if __name__ == "__main__":
