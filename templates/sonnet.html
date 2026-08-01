@@ -43,7 +43,7 @@
         {%- endif -%}
       </figcaption>
       {% if line.image %}
-      <img src="/assets/{{ line.image }}" alt="Sculpture for the line: {{ line.text }}"
+      <img src="/assets/{{ line.image }}" alt="Sculpture for: {{ line.poem_lines | map('trim') | join(' / ') if line.poem_lines else line.text }}"
            loading="lazy" width="{{ line.width or 1344 }}" height="{{ line.height or 768 }}">
       {% endif %}
     </figure>
