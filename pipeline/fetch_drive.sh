@@ -16,4 +16,6 @@ if [[ -n "$RUN" ]]; then
 else
   rclone copy "${SRC}" "${DEST}" --progress
 fi
+rclone copy "${DRIVE_ROOT}/Sonnet${SONNET}" "${DEST}" \
+  --include "Sonnet${SONNET}_use_lines.txt" --max-depth 1
 echo "pulled into ${DEST}"

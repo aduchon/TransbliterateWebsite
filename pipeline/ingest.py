@@ -15,6 +15,7 @@ Optional inputs, merged when present:
   pipeline/inbox/Sonnet018/glb/*.glb    compressed via compress_glb.sh separately
 """
 import argparse
+import difflib
 import json
 import re
 import subprocess
@@ -75,6 +76,45 @@ def line_info(run_json, n):
     return text, {k: v for k, v in meta.items() if v is not None}
 
 
+def align_use_lines(use_lines, poem):
+    """Partition the poem's non-blank lines into one group per use line.
+
+    A use line is a paraphrased concatenation of consecutive poem lines —
+    words get tweaked ("world" -> "earth"), symbolizing words inserted
+    ("conceptual eyes"), and anchor words repeated from earlier groups
+    ("desire", "I alone") — so alignment is fuzzy: a DP over monotonic
+    partitions maximizing token-sequence similarity per group.
+    """
+    def toks(s):
+        return re.findall(r"[a-z']+", s.lower())
+
+    def sim(use, group):
+        a, b = toks(use), [t for ln in group for t in toks(ln)]
+        return difflib.SequenceMatcher(None, a, b).ratio() if a and b else 0.0
+
+    lines = [ln for ln in poem if ln.strip()]
+    U, P = len(use_lines), len(lines)
+    if not U or U > P:
+        return None
+    NEG = float("-inf")
+    dp = [[NEG] * (P + 1) for _ in range(U + 1)]
+    back = [[0] * (P + 1) for _ in range(U + 1)]
+    dp[0][0] = 0.0
+    for u in range(1, U + 1):
+        for p in range(u, P + 1):
+            for k in range(max(u - 1, p - 6), p):
+                if dp[u - 1][k] > NEG:
+                    s = dp[u - 1][k] + sim(use_lines[u - 1], lines[k:p])
+                    if s > dp[u][p]:
+                        dp[u][p], back[u][p] = s, k
+    groups, p = [], P
+    for u in range(U, 0, -1):
+        k = back[u][p]
+        groups.append(lines[k:p])
+        p = k
+    return list(reversed(groups))
+
+
 def apply_poem(manifest, seq):
     """Fill poem text/part/roman from pipeline/poems.json (see extract_poems.py).
 
@@ -123,6 +163,16 @@ def main():
     if originals_path.exists() and not manifest.get("original"):
         manifest["original"] = json.loads(originals_path.read_text()).get(str(num), "")
 
+    use_path = args.inbox / f"Sonnet{slug}" / f"Sonnet{slug}_use_lines.txt"
+    groups = None
+    if use_path.exists():
+        use_lines = [ln.rstrip() for ln in use_path.read_text().splitlines() if ln.strip()]
+        groups = align_use_lines(use_lines, manifest.get("transbliteration", []))
+        if groups is None:
+            print("warning: could not align use lines to poem")
+    else:
+        print(f"note: {use_path.name} missing — captions fall back to prompt lines")
+
     img_dir = ROOT / "assets" / "img" / slug
     if img_dir.exists():
         for old in img_dir.glob("*.webp"):
@@ -135,11 +185,14 @@ def main():
         cwebp(png, ROOT / "assets" / image, 1344, 82)
         cwebp(png, ROOT / "assets" / thumb, 480, 78)
         text, meta = line_info(run_json, n)
-        lines.append({
+        entry = {
             "n": n, "text": text,
             "image": image, "thumb": thumb, "width": 1344, "height": 768,
             "meta": meta,
-        })
+        }
+        if groups and n < len(groups):
+            entry["poem_lines"] = groups[n]
+        lines.append(entry)
     if not lines:
         sys.exit(f"no {args.run}_line_*.png files in {run_dir}")
 

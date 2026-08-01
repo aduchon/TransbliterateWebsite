@@ -101,6 +101,11 @@ main { min-height: 70vh; }
   font-family: var(--serif); font-size: 1.3rem; margin-bottom: .8rem;
   color: var(--text);
 }
+.line-text pre {
+  font-family: inherit; font-size: inherit; color: inherit;
+  margin: 0; white-space: pre; tab-size: 5; overflow-x: auto;
+  line-height: 1.5;
+}
 .line-figure img { border-radius: 6px; display: block; }
 .prompt-details { margin-top: .5rem; font-size: .85rem; color: var(--muted); }
 .prompt-details summary { cursor: pointer; color: var(--link); }
