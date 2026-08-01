@@ -13,16 +13,29 @@
 
 <section id="sonnets" class="sonnet-grid-section">
   <h2>The Sonnets</h2>
-  <div class="sonnet-grid">
-    {% for s in sonnets %}
-    <a class="sonnet-card" href="/sonnets/{{ s.slug }}/">
-      {% if s.lines and s.lines[0].thumb %}
-      <img src="/assets/{{ s.lines[0].thumb }}" alt="" loading="lazy" width="480" height="274">
-      {% endif %}
-      <span class="card-roman">{{ s.roman }}</span>
-      <span class="card-line">{{ s.title_line }}</span>
-    </a>
-    {% endfor %}
-  </div>
+  {% for part in parts %}
+  <section class="part-section">
+    <header class="part-opener">
+      <h3>{{ part.title }}</h3>
+      <p class="part-name">{{ part.name }}</p>
+      {% if part.blurb %}<p class="part-blurb">{{ part.blurb }}</p>{% endif %}
+    </header>
+    {% if part.sonnets %}
+    <div class="sonnet-grid">
+      {% for s in part.sonnets %}
+      <a class="sonnet-card" href="/sonnets/{{ s.slug }}/">
+        {% if s.lines and s.lines[0].thumb %}
+        <img src="/assets/{{ s.lines[0].thumb }}" alt="" loading="lazy" width="480" height="274">
+        {% endif %}
+        <span class="card-roman">{{ s.roman }}</span>
+        <span class="card-line">{{ s.title_line }}</span>
+      </a>
+      {% endfor %}
+    </div>
+    {% else %}
+    <p class="part-empty">Forthcoming.</p>
+    {% endif %}
+  </section>
+  {% endfor %}
 </section>
 {% endblock %}

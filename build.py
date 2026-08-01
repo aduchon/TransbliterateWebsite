@@ -46,7 +46,16 @@ def build():
     specs = yaml.safe_load((ROOT / "content" / "specs.yaml").read_text())
     garden = json.loads((ROOT / "content" / "garden.json").read_text())
     sonnets = load_sonnets()
-    ctx = {"site": site, "sonnets": sonnets}
+    parts = yaml.safe_load((ROOT / "content" / "parts.yaml").read_text())
+    for part in parts:
+        part["sonnets"] = [s for s in sonnets if s.get("part") == part["name"]]
+    known = {p["name"] for p in parts}
+    for s in sonnets:  # a manifest with an unlisted part still gets shown
+        if s.get("part") not in known:
+            parts.append({"name": s.get("part") or "More", "title": s.get("part") or "More",
+                          "blurb": "", "sonnets": [s]})
+            known.add(s.get("part"))
+    ctx = {"site": site, "sonnets": sonnets, "parts": parts}
 
     if SITE.exists():
         shutil.rmtree(SITE)

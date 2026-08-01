@@ -52,6 +52,18 @@ main { min-height: 70vh; }
 .hero-desc { font-size: 1.1rem; color: var(--muted); }
 
 .sonnet-grid-section { padding: 1rem clamp(1rem, 4vw, 3rem) 3rem; }
+.part-section { margin: 2.5rem 0; }
+.part-opener { max-width: 40rem; margin-bottom: 1.2rem; }
+.part-opener h3 {
+  font-size: 1.8rem; margin: 0;
+  color: var(--accent);
+}
+.part-name {
+  margin: 0; font-size: .8rem; color: var(--muted);
+  text-transform: uppercase; letter-spacing: .15em;
+}
+.part-blurb { margin: .5rem 0 0; color: var(--muted); font-family: var(--serif); font-size: 1.05rem; }
+.part-empty { color: var(--surface); font-family: var(--serif); font-style: italic; }
 .sonnet-grid {
   display: grid; gap: 1.2rem;
   grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
@@ -79,7 +91,7 @@ main { min-height: 70vh; }
 .poem h2 { font-size: 1rem; color: var(--muted); text-transform: uppercase; letter-spacing: .1em; }
 .poem pre {
   font-family: var(--serif); font-size: 1.05rem; line-height: 1.7;
-  white-space: pre; margin: 0; tab-size: 3;
+  white-space: pre; margin: 0; tab-size: 5;
   overflow-x: auto;
 }
 

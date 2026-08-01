@@ -1,0 +1,29 @@
+# Section openers for the home page. Edit each blurb in your own words —
+# it introduces the Part above its sonnets. A Part with no published sonnets
+# still appears, marked as forthcoming, so visitors see the shape of the book.
+- name: "Part I. Sensing"
+  title: Sensing
+  blurb: >-
+    The opening movement: desire, beauty, and the body's first arguments
+    with time.
+- name: "Part II. Knowing"
+  title: Knowing
+  blurb: >-
+    Poems of the mind watching itself — flattery, deceit, and the strange
+    mathematics of devotion.
+- name: "Part III. Recovering"
+  title: Recovering
+  blurb: >-
+    Absence, loss, and the slow work of getting something back changed.
+- name: "Part IV. Loving"
+  title: Loving
+  blurb: >-
+    The heart of the sequence — love spoken plainly, obliquely, desperately.
+- name: "Part V. Rebelling"
+  title: Rebelling
+  blurb: >-
+    Against time, against convention, against the beloved, against the poem.
+- name: "Part VI. Accepting"
+  title: Accepting
+  blurb: >-
+    The late poems: what remains when the arguments are done.
