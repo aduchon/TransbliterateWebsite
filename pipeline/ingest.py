@@ -35,32 +35,44 @@ def roman(n):
     return out
 
 
-def cwebp(src, dst, width, quality):
+def cwebp(src, dst, width, quality, cap=300 * 1024):
     dst.parent.mkdir(parents=True, exist_ok=True)
-    subprocess.run(["cwebp", "-quiet", "-q", str(quality), "-resize", str(width), "0",
-                    str(src), "-o", str(dst)], check=True)
+    while True:
+        subprocess.run(["cwebp", "-quiet", "-q", str(quality), "-resize", str(width), "0",
+                        str(src), "-o", str(dst)], check=True)
+        if dst.stat().st_size <= cap or quality <= 55:
+            break
+        quality -= 10
 
 
-def line_meta(run_json, n):
-    """Pull per-line metadata out of the run JSON, tolerating layout variants."""
-    entries = run_json if isinstance(run_json, list) else \
-        run_json.get("lines", run_json.get("settings", []))
-    if isinstance(entries, dict):
-        entries = list(entries.values())
-    for e in entries:
-        if isinstance(e, dict) and e.get("line_number") == n:
-            core = e.get("core_prompt_dict1", {})
-            return {k: core.get(k) for k in
-                    ("material", "art_period", "artists", "background", "time_of_day")
-                    if core.get(k)} | {
-                "seed": e.get("seed") or (run_json.get("seed") if isinstance(run_json, dict) else None),
-                "steps": e.get("steps"),
-                "prompt": e.get("prompt1"),
-            }
-    # fall back to run-level fields
-    if isinstance(run_json, dict):
-        return {"seed": run_json.get("seed"), "steps": run_json.get("steps")}
-    return {}
+def flatten(v):
+    """Single-element lists read better as scalars in the manifest."""
+    return v[0] if isinstance(v, list) and len(v) == 1 else v
+
+
+def line_info(run_json, n):
+    """Text + metadata for image-line n from the run JSON.
+
+    Run JSON layout: one core_prompt_dict1/2 for the whole run (a run = one
+    style), plus parallel arrays line_numbers / lines / prompts1 / prompts2.
+    The 'lines' texts are image-line groupings of the poem, so they are the
+    captions — not a 1:1 split of the transbliteration.
+    """
+    core = run_json.get("core_prompt_dict1", {})
+    meta = {k: flatten(core[k]) for k in
+            ("material", "art_period", "artists", "background", "time_of_day")
+            if core.get(k)}
+    meta |= {"seed": run_json.get("seed"), "steps": run_json.get("steps")}
+    text = ""
+    numbers = run_json.get("line_numbers", [])
+    if n in numbers:
+        idx = numbers.index(n)
+        texts, prompts = run_json.get("lines", []), run_json.get("prompts1", [])
+        if idx < len(texts):
+            text = texts[idx]
+        if idx < len(prompts):
+            meta["prompt"] = prompts[idx]
+    return text, {k: v for k, v in meta.items() if v is not None}
 
 
 def poem_from_book(book_text, seq):
@@ -116,7 +128,10 @@ def main():
     if originals_path.exists() and not manifest.get("original"):
         manifest["original"] = json.loads(originals_path.read_text()).get(str(num), "")
 
-    poem_lines = manifest.get("transbliteration", [])
+    img_dir = ROOT / "assets" / "img" / slug
+    if img_dir.exists():
+        for old in img_dir.glob("*.webp"):
+            old.unlink()
     lines = []
     for png in sorted(run_dir.glob(f"{args.run}_line_*.png")):
         n = int(png.stem.rsplit("_", 1)[1])
@@ -124,11 +139,11 @@ def main():
         thumb = f"img/{slug}/line_{n:02d}_thumb.webp"
         cwebp(png, ROOT / "assets" / image, 1344, 82)
         cwebp(png, ROOT / "assets" / thumb, 480, 78)
+        text, meta = line_info(run_json, n)
         lines.append({
-            "n": n,
-            "text": poem_lines[n - 1] if 0 < n <= len(poem_lines) else "",
+            "n": n, "text": text,
             "image": image, "thumb": thumb, "width": 1344, "height": 768,
-            "meta": line_meta(run_json, n),
+            "meta": meta,
         })
     if not lines:
         sys.exit(f"no {args.run}_line_*.png files in {run_dir}")
@@ -136,8 +151,11 @@ def main():
     manifest.update({
         "sonnet": num, "roman": roman(num), "seq": seq, "run": args.run, "lines": lines,
     })
+    manifest.pop("placeholder", None)
+    manifest.pop("comment", None)
+    poem = manifest.get("transbliteration", [])
     manifest.setdefault("part", "")
-    manifest.setdefault("title_line", poem_lines[0] if poem_lines else "")
+    manifest.setdefault("title_line", poem[0] if poem else "")
     manifest.setdefault("original", "")
     manifest.setdefault("transbliteration", [])
     manifest.setdefault("models", [])
